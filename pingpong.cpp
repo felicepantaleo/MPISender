@@ -6,40 +6,17 @@
  */
 
 
-
-
-#define BENCHMARK "OSU MPI%s Latency Test"
-/*
- * Copyright (C) 2002-2013 the Network-Based Computing Laboratory
- * (NBCL), The Ohio State University.
- *
- * Contact: Dr. D. K. Panda (panda@cse.ohio-state.edu)
- *
- * For detailed copyright and licensing information, please refer to the
- * copyright file COPYRIGHT in the top level OMB directory.
- */
-
 #include <mpi.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
-
-#ifdef _ENABLE_OPENACC_
-#include <openacc.h>
-#endif
-
-#ifdef _ENABLE_CUDA_
+//#ifdef _ENABLE_CUDA_
 #include <cuda.h>
 #include <cuda_runtime.h>
-#endif
+//#endif
 
-#ifdef PACKAGE_VERSION
-#   define HEADER "# " BENCHMARK " v" PACKAGE_VERSION "\n"
-#else
-#   define HEADER "# " BENCHMARK "\n"
-#endif
 
 #ifndef FIELD_WIDTH
 #   define FIELD_WIDTH 20
@@ -58,12 +35,6 @@
 #define SKIP_LARGE  10
 #define LARGE_MESSAGE_SIZE  8192
 
-#ifdef _ENABLE_OPENACC_
-#   define OPENACC_ENABLED 1
-#else
-#   define OPENACC_ENABLED 0
-#endif
-
 #ifdef _ENABLE_CUDA_
 #   define CUDA_ENABLED 1
 #else
@@ -75,10 +46,6 @@ char r_buf_original[MYBUFSIZE];
 
 int skip = 1000;
 int loop = 10000;
-
-#ifdef _ENABLE_CUDA_
-CUcontext cuContext;
-#endif
 
 enum po_ret_type {
     po_cuda_not_avail,
@@ -130,36 +97,6 @@ main (int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
-    if (0 == myid) {
-        switch (po_ret) {
-            case po_cuda_not_avail:
-                fprintf(stderr, "CUDA support not enabled.  Please recompile "
-                        "benchmark with CUDA support.\n");
-                break;
-            case po_openacc_not_avail:
-                fprintf(stderr, "OPENACC support not enabled.  Please "
-                        "recompile benchmark with OPENACC support.\n");
-                break;
-            case po_bad_usage:
-            case po_help_message:
-                usage();
-                break;
-        }
-    }
-
-    switch (po_ret) {
-        case po_cuda_not_avail:
-        case po_openacc_not_avail:
-        case po_bad_usage:
-            MPI_Finalize();
-            exit(EXIT_FAILURE);
-        case po_help_message:
-            MPI_Finalize();
-            exit(EXIT_SUCCESS);
-        case po_okay:
-            break;
-    }
-
     if(numprocs != 2) {
         if(myid == 0) {
             fprintf(stderr, "This test requires exactly two processes\n");
@@ -168,14 +105,6 @@ main (int argc, char *argv[])
         MPI_Finalize();
         exit(EXIT_FAILURE);
     }
-
-    if (allocate_memory(&s_buf, &r_buf, myid)) {
-        /* Error allocating memory */
-        MPI_Finalize();
-        exit(EXIT_FAILURE);
-    }
-
-    print_header(myid);
 
     /* Latency test */
     for(size = 0; size <= MAX_MSG_SIZE; size = (size ? size * 2 : 1)) {
@@ -215,17 +144,10 @@ main (int argc, char *argv[])
         }
     }
 
-    free_memory(s_buf, r_buf, myid);
+//    free_memory(s_buf, r_buf, myid);
     MPI_Finalize();
 
-    if (cuda == options.accel) {
-        if (destroy_cuda_context()) {
-            fprintf(stderr, "Error destroying cuda context\n");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    return EXIT_SUCCESS;
+   return EXIT_SUCCESS;
 }
 
 void
@@ -244,99 +166,8 @@ usage (void)
 
     printf("options:\n");
 
-    if (CUDA_ENABLED || OPENACC_ENABLED) {
-        printf("  -d TYPE       accelerator device buffers can be of TYPE "
-                "`cuda' or `openacc'\n");
-    }
-
     printf("  -h            print this help message\n");
     fflush(stdout);
-}
-
-int
-process_options (int argc, char *argv[])
-{
-    extern char * optarg;
-    extern int optind;
-
-    char const * optstring = (CUDA_ENABLED || OPENACC_ENABLED) ? "+d:h" : "+h";
-    int c;
-
-    /*
-     * set default options
-     */
-    options.src = 'H';
-    options.dst = 'H';
-
-    if (CUDA_ENABLED) {
-        options.accel = cuda;
-    }
-
-    else if (OPENACC_ENABLED) {
-        options.accel = openacc;
-    }
-
-    else {
-        options.accel = none;
-    }
-
-    while((c = getopt(argc, argv, optstring)) != -1) {
-        switch (c) {
-            case 'd':
-                /* optarg should contain cuda or openacc */
-                if (0 == strncasecmp(optarg, "cuda", 10)) {
-                    if (!CUDA_ENABLED) {
-                        return po_cuda_not_avail;
-                    }
-                    options.accel = cuda;
-                }
-
-                else if (0 == strncasecmp(optarg, "openacc", 10)) {
-                    if (!OPENACC_ENABLED) {
-                        return po_openacc_not_avail;
-                    }
-                    options.accel = openacc;
-                }
-
-                else {
-                    return po_bad_usage;
-                }
-                break;
-            case 'h':
-                return po_help_message;
-            default:
-                return po_bad_usage;
-        }
-    }
-
-    if (CUDA_ENABLED || OPENACC_ENABLED) {
-        if ((optind + 2) == argc) {
-            options.src = argv[optind][0];
-            options.dst = argv[optind + 1][0];
-
-            switch (options.src) {
-                case 'D':
-                case 'H':
-                    break;
-                default:
-                    return po_bad_usage;
-            }
-
-            switch (options.dst) {
-                case 'D':
-                case 'H':
-                    break;
-                default:
-                    return po_bad_usage;
-            }
-        }
-
-        else if (optind != argc) {
-            return po_bad_usage;
-        }
-    }
-
-    return po_okay;
 }
 
 int
