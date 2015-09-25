@@ -47,25 +47,7 @@ char r_buf_original[MYBUFSIZE];
 int skip = 1000;
 int loop = 10000;
 
-enum po_ret_type {
-    po_cuda_not_avail,
-    po_openacc_not_avail,
-    po_bad_usage,
-    po_help_message,
-    po_okay,
-};
 
-enum accel_type {
-    none,
-    cuda,
-    openacc
-};
-
-struct {
-    char src;
-    char dst;
-    enum accel_type accel;
-} options;
 
 void usage (void);
 int init_cuda_context (void);
