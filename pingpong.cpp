@@ -150,59 +150,6 @@ main (int argc, char *argv[])
    return EXIT_SUCCESS;
 }
 
-void
-usage (void)
-{
-    if (CUDA_ENABLED || OPENACC_ENABLED) {
-        printf("Usage: osu_latency [options] [RANK0 RANK1]\n\n");
-        printf("RANK0 and RANK1 may be `D' or `H' which specifies whether\n"
-               "the buffer is allocated on the accelerator device or host\n"
-               "memory for each mpi rank\n\n");
-    }
-
-    else {
-        printf("Usage: osu_latency [options]\n\n");
-    }
-
-    printf("options:\n");
-
-    printf("  -h            print this help message\n");
-    fflush(stdout);
-}
-
-int
-init_cuda_context (void)
-{
-#ifdef _ENABLE_CUDA_
-    CUresult curesult = CUDA_SUCCESS;
-    CUdevice cuDevice;
-    int local_rank, dev_count;
-    int dev_id = 0;
-    char * str;
-
-    if ((str = getenv("LOCAL_RANK")) != NULL) {
-        cudaGetDeviceCount(&dev_count);
-        local_rank = atoi(str);
-        dev_id = local_rank % dev_count;
-    }
-
-    curesult = cuInit(0);
-    if (curesult != CUDA_SUCCESS) {
-        return 1;
-    }
-
-    curesult = cuDeviceGet(&cuDevice, dev_id);
-    if (curesult != CUDA_SUCCESS) {
-        return 1;
-    }
-
-    curesult = cuCtxCreate(&cuContext, 0, cuDevice);
-    if (curesult != CUDA_SUCCESS) {
-        return 1;
-    }
-#endif
-    return 0;
-}
 
 int
 allocate_device_buffer (char ** buffer)
