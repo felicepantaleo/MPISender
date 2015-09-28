@@ -17,29 +17,14 @@
 #include <cuda_runtime.h>
 //#endif
 
-
-#ifndef FIELD_WIDTH
-#   define FIELD_WIDTH 20
-#endif
-
-#ifndef FLOAT_PRECISION
-#   define FLOAT_PRECISION 2
-#endif
-
-#define MESSAGE_ALIGNMENT 64
-#define MAX_ALIGNMENT 65536
 #define MAX_MSG_SIZE (1<<22)
-#define MYBUFSIZE (MAX_MSG_SIZE + MAX_ALIGNMENT)
+#define MYBUFSIZE (MAX_MSG_SIZE )
 
 #define LOOP_LARGE  100
 #define SKIP_LARGE  10
 #define LARGE_MESSAGE_SIZE  8192
 
-#ifdef _ENABLE_CUDA_
-#   define CUDA_ENABLED 1
-#else
-#   define CUDA_ENABLED 0
-#endif
+
 
 char s_buf_original[MYBUFSIZE];
 char r_buf_original[MYBUFSIZE];
@@ -102,10 +87,7 @@ main (int argc, char *argv[])
 
         if(myid == 0) {
             double latency = (t_end - t_start) * 1e6 / (2.0 * loop);
-
-            fprintf(stdout, "%-*d%*.*f\n", 10, size, FIELD_WIDTH,
-                    FLOAT_PRECISION, latency);
-            fflush(stdout);
+            std::cout << "latency: " << latency << std::endl;
         }
     }
 
