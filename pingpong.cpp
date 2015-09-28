@@ -5,7 +5,7 @@
  *      Author: fpantale
  */
 
-
+#include <iostream>
 #include <mpi.h>
 #include <unistd.h>
 #include <stdlib.h>
