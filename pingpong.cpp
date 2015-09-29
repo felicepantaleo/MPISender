@@ -36,65 +36,56 @@ int loop = 10000;
 int
 main (int argc, char *argv[])
 {
-    int myid, numprocs, i;
-    int size;
-    MPI_Status reqstat;
-    char *s_buf, *r_buf;
-    double t_start = 0.0, t_end = 0.0;
+	int myid, numprocs, i;
+	int size;
+	MPI_Status reqstat;
+	char *s_buf, *r_buf;
+	double t_start = 0.0, t_end = 0.0;
 
 
-    MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
-    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+	MPI_Init(&argc, &argv);
+	MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+	MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
-    if(numprocs != 2) {
-        if(myid == 0) {
-            fprintf(stderr, "This test requires exactly two processes\n");
-        }
+	if(numprocs != 2) {
+		if(myid == 0) {
+			fprintf(stderr, "This test requires exactly two processes\n");
+		}
 
-        MPI_Finalize();
-        exit(EXIT_FAILURE);
-    }
+		MPI_Finalize();
+		exit(EXIT_FAILURE);
+	}
 
-    /* Latency test */
-    for(size = 0; size <= MAX_MSG_SIZE; size = (size ? size * 2 : 1)) {
+	/* Latency test */
 
+	auto size = 100;
+	MPI_Barrier(MPI_COMM_WORLD);
 
-        if(size > LARGE_MESSAGE_SIZE) {
-            loop = LOOP_LARGE;
-            skip = SKIP_LARGE;
-        }
+	if(myid == 0) {
+		t_start = MPI_Wtime();
 
-        MPI_Barrier(MPI_COMM_WORLD);
+			MPI_Send(s_buf, size, MPI_CHAR, 1, 1, MPI_COMM_WORLD);
+			MPI_Recv(r_buf, size, MPI_CHAR, 1, 1, MPI_COMM_WORLD, &reqstat);
 
-        if(myid == 0) {
-            for(i = 0; i < loop + skip; i++) {
-                if(i == skip) t_start = MPI_Wtime();
+		t_end = MPI_Wtime();
+	}
 
-                MPI_Send(s_buf, size, MPI_CHAR, 1, 1, MPI_COMM_WORLD);
-                MPI_Recv(r_buf, size, MPI_CHAR, 1, 1, MPI_COMM_WORLD, &reqstat);
-            }
+	else if(myid == 1) {
 
-            t_end = MPI_Wtime();
-        }
+			MPI_Recv(r_buf, size, MPI_CHAR, 0, 1, MPI_COMM_WORLD, &reqstat);
+			MPI_Send(s_buf, size, MPI_CHAR, 0, 1, MPI_COMM_WORLD);
 
-        else if(myid == 1) {
-            for(i = 0; i < loop + skip; i++) {
-                MPI_Recv(r_buf, size, MPI_CHAR, 0, 1, MPI_COMM_WORLD, &reqstat);
-                MPI_Send(s_buf, size, MPI_CHAR, 0, 1, MPI_COMM_WORLD);
-            }
-        }
+	}
 
-        if(myid == 0) {
-            double latency = (t_end - t_start) * 1e6 / (2.0 * loop);
-            std::cout << "latency: " << latency << std::endl;
-        }
-    }
+	if(myid == 0) {
+		double latency = (t_end - t_start) * 1e6 / (2.0 * loop);
+		std::cout << "latency: " << latency << std::endl;
+	}
 
-//    free_memory(s_buf, r_buf, myid);
-    MPI_Finalize();
+	//    free_memory(s_buf, r_buf, myid);
+	MPI_Finalize();
 
-   return EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
 /* vi:set sw=4 sts=4 tw=80: */
