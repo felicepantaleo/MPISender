@@ -58,7 +58,7 @@ main (int argc, char *argv[])
 
 	/* Latency test */
 
-	auto size = 100;
+	size = 100;
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	if(myid == 0) {
