@@ -80,7 +80,7 @@ main (int argc, char *argv[])
 	}
 
 	if(myid == 0) {
-		double latency = (t_end - t_start) * 1e6 / (2.0 * loop);
+		double latency = (t_end - t_start) * 1e6 / (2.0);
 		std::cout << "latency: " << latency << std::endl;
 	}
 
