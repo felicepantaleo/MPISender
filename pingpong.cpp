@@ -33,8 +33,6 @@ main (int argc, char *argv[])
 
 	int myid, numprocs, i;
 	int size = MYBUFSIZE;
-	cudaMalloc((void**)&s_buf, size);
-	cudaMalloc((void**)&r_buf, size);
 
 
 //	for (int j = 0; j< size; ++j)
@@ -49,6 +47,7 @@ main (int argc, char *argv[])
 	MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
+
 	if(numprocs != 2) {
 		if(myid == 0) {
 			fprintf(stderr, "This test requires exactly two processes\n");
@@ -57,7 +56,8 @@ main (int argc, char *argv[])
 		MPI_Finalize();
 		exit(EXIT_FAILURE);
 	}
-
+	cudaMalloc((void**)&s_buf, size);
+	cudaMalloc((void**)&r_buf, size);
 	/* Latency test */
 
 	MPI_Barrier(MPI_COMM_WORLD);
