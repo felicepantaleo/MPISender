@@ -31,17 +31,16 @@ main (int argc, char *argv[])
 
 	char *s_buf, *r_buf;
 
-	std::cout << "hola!" << std::endl;
 	int myid, numprocs, i;
 	int size = MYBUFSIZE;
-	cudaMallocHost((void**)&s_buf, size);
-	cudaMallocHost((void**)&r_buf, size);
+	cudaMalloc((void**)&s_buf, size);
+	cudaMalloc((void**)&r_buf, size);
 
 
-	for (int j = 0; j< size; ++j)
-	{
-		s_buf[j] = 'a';
-	}
+//	for (int j = 0; j< size; ++j)
+//	{
+//		s_buf[j] = 'a';
+//	}
 	MPI_Status reqstat;
 	double t_start = 0.0, t_end = 0.0;
 
@@ -83,11 +82,11 @@ main (int argc, char *argv[])
 		double latency = (t_end - t_start) * 1e6 / (2.0);
 		std::cout << "latency: " << latency << std::endl;
 	}
+	cudaFree(s_buf);
+	cudaFree(r_buf);
 
 	//    free_memory(s_buf, r_buf, myid);
 	MPI_Finalize();
-	cudaFreeHost(s_buf);
-	cudaFreeHost(r_buf);
 
 	return EXIT_SUCCESS;
 }

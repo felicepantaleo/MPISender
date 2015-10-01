@@ -3,6 +3,7 @@
 ## Running
 export MV2_PATH=/opt/mvapich2/gdr/2.1/cuda7.0/gnu
 export MV2_USE_CUDA=1
+source /afs/cern.ch/sw/lcg/external/gcc/4.9.3/x86_64-slc6/setup.sh
 git pull; mpic++ pingpong.cpp -fpermissive -I/usr/local/cuda/include -I/opt/mvapich2/gdr/2.1/cuda7.0/gnu/include -o pingpong
 $MV2_PATH/bin/mpirun_rsh -np 2 felk40 felk40 /home/fpantale/cuda-workspace/MPISender/pingpong
         
