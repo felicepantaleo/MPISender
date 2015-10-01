@@ -17,29 +17,32 @@
 #include <cuda_runtime.h>
 //#endif
 
-#define MAX_MSG_SIZE (1<<22)
-#define MYBUFSIZE (MAX_MSG_SIZE )
-
-#define LOOP_LARGE  100
-#define SKIP_LARGE  10
-#define LARGE_MESSAGE_SIZE  8192
 
 
+#define MYBUFSIZE 20
 
-char s_buf_original[MYBUFSIZE];
-char r_buf_original[MYBUFSIZE];
 
-int skip = 1000;
-int loop = 10000;
 
 
 int
 main (int argc, char *argv[])
 {
-	int myid, numprocs, i;
-	int size;
-	MPI_Status reqstat;
+
+
 	char *s_buf, *r_buf;
+
+
+	int myid, numprocs, i;
+	int size = MYBUFSIZE;
+	cudaMallocHost((void**)&s_buf, size);
+	cudaMallocHost((void**)&r_buf, size);
+
+
+	for (int j = 0; j< size; ++j)
+	{
+		s_buf[j] = 'a';
+	}
+	MPI_Status reqstat;
 	double t_start = 0.0, t_end = 0.0;
 
 
@@ -58,7 +61,6 @@ main (int argc, char *argv[])
 
 	/* Latency test */
 
-	size = 100;
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	if(myid == 0) {
@@ -84,6 +86,8 @@ main (int argc, char *argv[])
 
 	//    free_memory(s_buf, r_buf, myid);
 	MPI_Finalize();
+	cudaFreeHost(s_buf);
+	cudaFreeHost(r_buf);
 
 	return EXIT_SUCCESS;
 }

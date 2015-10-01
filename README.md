@@ -1,10 +1,10 @@
 # MPISender
-    export MV2_PATH=/opt/mvapich2/gdr/2.1a/gnu
-    export =path/to/GDRCOPY/install
-    export MV2_USE_CUDA=1
-        $MV2_PATH/bin/mpirun_rsh -export -np 2 hostA hostB \
-        $MV2_PATH/libexec/mvapich2/get_local_rank \
-        $MV2_PATH/libexec/mvapich2/osu_latency D D
+
+## Running
+export MV2_PATH=/opt/mvapich2/gdr/2.1/cuda7.0/gnu
+export MV2_USE_CUDA=1
+
+$MV2_PATH/bin/mpirun_rsh -np 2 felk40 felk40 /home/fpantale/cuda-workspace/MPISender/a.out
         
         
         
