@@ -31,7 +31,7 @@ main (int argc, char *argv[])
 
 	char *s_buf, *r_buf;
 
-
+	std::cout << "hola!" << std::endl;
 	int myid, numprocs, i;
 	int size = MYBUFSIZE;
 	cudaMallocHost((void**)&s_buf, size);
